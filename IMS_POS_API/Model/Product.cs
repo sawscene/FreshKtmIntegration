@@ -103,10 +103,6 @@ namespace IMS_POS_API.Model
         public string STAMP { get; set; }
 
     }
-    public class ErrorList
-    {
-        public string FieldName { get; set; }
-        public string ErrorMessage { get; set; }
-    }
+   
 }
 

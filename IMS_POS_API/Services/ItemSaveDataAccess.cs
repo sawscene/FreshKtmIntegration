@@ -34,9 +34,7 @@ namespace IMS_POS_API.Services
                 
                 IList<FunctionResponse> ErrorItemList = new List<FunctionResponse>();
                 IList<ItemGroup> ItemGroupList = param;
-                //TrnMain.TRNDATE = trnmainDTO.TransactionDate.Date;
-                List<ErrorList> elist = new List<ErrorList>();
-                FunctionResponse res = GetExistingProductMCode(ItemGroupList.Select(x => "PRG" + x.GroupCode).ToList(), "G");
+                FunctionResponse res =await GetExistingProductMCode(ItemGroupList.Select(x => "PRG" + x.GroupCode).ToList(), "G");
                 if (res.status != "ok")
                 {
                     return new BadRequestObjectResult(res);
@@ -45,18 +43,17 @@ namespace IMS_POS_API.Services
                 foreach (ItemGroup grp in ItemGroupList)
                 {
                     
-                    DateTime trndate = db.ExecuteScalar<DateTime>("select getdate()");
-                    TimeSpan date = trndate - grp.TimeStamp;
-                    if (trndate.Subtract(grp.TimeStamp).TotalMinutes > 5)
-                    {
+                    //DateTime trndate = db.ExecuteScalar<DateTime>("select getdate()");
+                    //TimeSpan date = trndate - grp.TimeStamp;
+                    //if (trndate.Subtract(grp.TimeStamp).TotalMinutes > 5)
+                    //{
 
-                        throw new Exception("time limit is not valid");
-                    }
+                    //    throw new Exception("time limit is not valid");
+                    //}
                     Product product = new Product()
                     {
-                        // PTYPE = 0,
                         FCODE = 0,
-                        MCODE = grp.GroupCode,
+                        MCODE = "PRG" + grp.GroupCode,
                         DESCA = grp.Name,
                         DESCB = string.Empty,
                         MENUCODE = grp.GroupCode,
@@ -64,7 +61,6 @@ namespace IMS_POS_API.Services
                         MGROUP = "PRG" + grp.GroupCode,
                         PARENT = "MI",
                         LEVELS = 1,
-                        //STATUS = grp.Status,
                         MCAT = "N/A",
                         MCAT1 = "N/A",
                         PATH = "PRODUCT LIST\\" + grp.Name + " - " + grp.GroupCode
@@ -72,8 +68,7 @@ namespace IMS_POS_API.Services
                     string McodeExist = db.ExecuteScalar<string>("select MCODE from MenuItem where MCODE=@MCODE", new { MCODE = product.MCODE });
                     if (!string.IsNullOrEmpty(McodeExist))
                     {
-                        elist.Add(new ErrorList { FieldName = "MCODE", ErrorMessage = $"MCODE '{product.MCODE}' is already saved." });
-                        return new FunctionResponse { status = "error", result = elist };
+                        return FunctionResponse.GetSingleError("MCODE",$"GroupCode:'{product.MCODE}'is already saved");
                     }
                     if (product.PTYPE < 0)
                         product.PTYPE = 0;
@@ -91,25 +86,23 @@ namespace IMS_POS_API.Services
                             GetMCode(tran, product);
                             GetMenuCode(tran, product);
                             if (!SaveNewProduct(tran, product))
-                                return new FunctionResponse { status = "error", result = "Product could not be saved" };
+                                return FunctionResponse.GetSingleError("SaveNewProduct","Product could not be Saved");
                             tran.Connection.Execute("UPDATE RMD_SEQUENCES SET CURNO = CURNO+1 WHERE VNAME = 'ITEM'", transaction: tran);
-                            // ActivityLog.SetUserActivityLog(TrnUser, tran, Session.SessionId, "Product Master", "New", VCRHNO: product.MCODE);
                             tran.Commit();
-                            return new FunctionResponse { status = "ok", result = new { mcode = product.MCODE, menucode = product.MENUCODE } };
+                            return new { status = "ok", result = $"GroupCode:'{product.MCODE}'",message="success"};
 
                         }
                         catch (Exception Ex)
                         {
-
-                            throw Ex;
+                            return new { status = "error", result = Ex.GetBaseException().Message };
                         }
                     }
                 }
-                return new FunctionResponse { status = "error", result = "Something went wrong. Please try again." };
+                return FunctionResponse.GetSingleError("","Something went wrong.Please Try Again");
             }
             catch (Exception Ex)
             {
-                throw Ex;
+                return new { status = "error", result = Ex.GetBaseException().Message };
             }
         }
         public async Task<dynamic> SaveItem(List<Item> param)
@@ -118,15 +111,13 @@ namespace IMS_POS_API.Services
             {
                 IList<FunctionResponse> ErrorItemList = new List<FunctionResponse>();
                 IList<Item> ItemList = param;
-                List<ErrorList> elist = new List<ErrorList>();
-                FunctionResponse res = GetExistingProductMCode(ItemList.Select(x => x.SkuCode).ToList(), "A");
+                FunctionResponse res =await GetExistingProductMCode(ItemList.Select(x => x.SkuCode).ToList(), "A");
                 if (res.status != "ok")
                 {
-                    //_con.SetRequestLog(Request, (JArray)param, res, "ItemSaveRequest");
                     return new BadRequestObjectResult(res);
                 }
                 IList<string> ExistingItems = res.result as IList<string>;
-                res = GetItemParent(ItemList.Select(x => "PRG" + x.GroupCode).Distinct().ToList());
+                res =await GetItemParent(ItemList.Select(x => "PRG" + x.GroupCode).Distinct().ToList());
                 if (res.status != "ok")
                 {
                     return new BadRequestObjectResult(res);
@@ -134,17 +125,18 @@ namespace IMS_POS_API.Services
                 IList<Product> Parents = res.result as IList<Product>;
                 foreach (Item item in ItemList)
                 {
-                    DateTime trndate = db.ExecuteScalar<DateTime>("select getdate()");
-                    TimeSpan date = trndate - item.TimeStamp;
-                    if (trndate.Subtract(item.TimeStamp).TotalMinutes > 5)
-                    {
+                    //DateTime trndate = await db.ExecuteScalarAsync<DateTime>("select getdate()");
+                    //TimeSpan date = trndate - item.TimeStamp;
+                    //if (trndate.Subtract(item.TimeStamp).TotalMinutes > 5)
+                    //{
 
-                        throw new Exception("time limit is not valid");
-                    }
+                    //    throw new Exception("time limit is not valid");
+                    //}
                     if (!Parents.Any(x => x.MENUCODE == item.GroupCode))
                     {
-                        ErrorItemList.Add(new FunctionResponse { status = "error", result = string.Format("GroupCode '{0}' of Item '{1}({2})' doesnot exists in IMS Database. Please contact CRM Team.", item.GroupCode, item.Name, item.SkuCode) });
+                        ErrorItemList.Add(FunctionResponse.GetSingleError("error", $"GroupCode:'{item.GroupCode}'does not exist in DataBase"));
                         continue;
+
                     }  
                     Product Parent = Parents.FirstOrDefault(x => x.MENUCODE == item.GroupCode);
                     var product = new Product()
@@ -162,40 +154,29 @@ namespace IMS_POS_API.Services
                         PARENT = "PRG" + item.GroupCode,
                         LEVELS = 2,
                         PTYPE = 0,
-                        //PRATE_A = item.MRP,
                         RATE_A = Convert.ToDecimal(item.MRP),
-                        // RATE_B = item.DRate,
                         VAT = item.IsVatItem,
                         STATUS = item.Status,
-                        //MCAT = item.Brand,
-                        //BRAND = item.Brand,
                         MCAT1 = "N/A",
                         PATH = "PRODUCT LIST\\" + Parent.DESCA + " - " + Parent.MENUCODE + "\\" + item.Name + " - " + item.SkuCode
                     };
                     string McodeExist = db.ExecuteScalar<string>("select MCODE from MenuItem where MCODE=@MCODE", new { MCODE = item.SkuCode });
                     if (!string.IsNullOrEmpty(McodeExist))
                     {
-                        elist.Add(new ErrorList { FieldName = "MCODE", ErrorMessage = $"MCODE '{item.SkuCode}' is already saved." });
-                        return new FunctionResponse { status = "error", result = elist };
+                        return FunctionResponse.GetSingleError("SkuCode",$"SkuCode:'{item.SkuCode}' is already Saved");
                     }
+
                     var BCodeList = new List<BarCode>();
                     if (!string.IsNullOrEmpty(item.BarCode))
                         BCodeList.Add(new BarCode { MCODE = item.SkuCode, BCODE = item.BarCode });
                     else
                         BCodeList.Add(new BarCode { MCODE = item.SkuCode, BCODE = item.SkuCode });
+
                     var AltUnit = new List<MULTIALTUNIT>();
                     if (!string.IsNullOrEmpty(item.AlternateUOM))
                         AltUnit.Add(new MULTIALTUNIT { MCODE = item.SkuCode, ALTUNIT = item.AlternateUOM, CONFACTOR = Convert.ToInt32(item.AlternateQuantity), RATE = Convert.ToInt32(item.AlternateMRP),BRCODE=(item.BarCode!=null?item.BarCode:item.SkuCode) });
-                    //else
-                    //    AltUnit.Add(new MULTIALTUNIT {MCODE=item.SkuCode,ALTUNIT=item.UOM,CONFACTOR=Convert.ToInt32(item.) })
                     if (product.PTYPE < 0)
                         product.PTYPE = 0;
-                    //if (product.TYPE == "G" && product.PARENT == "MI")
-                    //{
-                    //    product.MGROUP = product.MCODE;
-                    //    if (!ManualMcode)
-                    //        product.MENUCODE = (product.FCODE > 0) ? product.FCODE.ToString() : string.Empty;
-                    //}
                     db.Open();
                     using (SqlTransaction tran = (SqlTransaction)db.BeginTransaction())
                     {
@@ -204,37 +185,33 @@ namespace IMS_POS_API.Services
                             GetMCode(tran, product);
                             GetMenuCode(tran, product);
                             if (!SaveNewProduct(tran, product))
-                                return new FunctionResponse { status = "error", result = "Product could not be saved" };
+                                return FunctionResponse.GetSingleError("SaveNewProduct", "Product could not be saved");
                             if (product.TYPE == "A")
                             {
                                 if (!SaveBarcodes(tran, product, BCodeList))
-                                    return new FunctionResponse { status = "error", result = "Barcode could not be saved" };
+                                    return FunctionResponse.GetSingleError("SaveBarCode","BarCode could not be saved");
                                 if (!SaveAlternateUnits(tran, product, AltUnit))
-                                    return new FunctionResponse { status = "error", result = "Alternate units could not be saved" };
+                                    return FunctionResponse.GetSingleError("SaveAlernateUnits","Alternate units could not be saved");
                             }
                             tran.Connection.Execute("UPDATE RMD_SEQUENCES SET CURNO = CURNO+1 WHERE VNAME = 'ITEM'", transaction: tran);
-                            // ActivityLog.SetUserActivityLog(TrnUser, tran, Session.SessionId, "Product Master", "New", VCRHNO: product.MCODE);
                             tran.Commit();
-                            return new FunctionResponse { status = "ok", result = new { mcode = product.MCODE, menucode = product.MENUCODE } };
+                            return new FunctionResponse { status = "ok", result = $"SKuCode: '{product.MCODE}'",message="success"};
 
                         }
                         catch (Exception Ex)
                         {
-
-                            throw Ex;
+                            return new FunctionResponse { status = "error", result = Ex.GetBaseException().Message };
                         }
                     }
                 }
-                return new FunctionResponse { status = "error", result = "Something went wrong. Please try again." };
-
+                return ErrorItemList;// FunctionResponse.GetSingleError("","Something Went wrong.Please Try Again");
             }
-            catch (Exception)
+            catch (Exception Ex)
             {
-
-                throw;
+                return new { status = "error", result = Ex.GetBaseException().Message };
             }
         }
-        public FunctionResponse GetExistingProductMCode(IList<string> MCodeList, string Type = "A")
+        public async Task<FunctionResponse> GetExistingProductMCode(IList<string> MCodeList, string Type = "A")
         {
             try
             {
@@ -244,7 +221,7 @@ namespace IMS_POS_API.Services
                 {
                     InStr += ", '" + MCodeList[i] + "'";
                 }
-                IEnumerable<Product> ExsitingMCodeList = db.Query<Product>("SELECT MCODE, TYPE FROM MENUITEM WHERE MCODE IN (" + InStr + ")");
+                IEnumerable<Product> ExsitingMCodeList = await db.QueryAsync<Product>("SELECT MCODE, TYPE FROM MENUITEM WHERE MCODE IN (" + InStr + ")");
                 foreach (Product item in ExsitingMCodeList)
                 {
                     if (item.TYPE != Type)
@@ -253,16 +230,16 @@ namespace IMS_POS_API.Services
                 if (!string.IsNullOrEmpty(TypeMismatchItems))
                 {
                     if (Type == "G")
-                        return new FunctionResponse { status = "error", result = "There are items with codes " + TypeMismatchItems };
+                        return FunctionResponse.GetSingleError("SkuCode", "There are items with codes " + TypeMismatchItems);
                     else
-                        return new FunctionResponse { status = "error", result = "There are item groups with codes " + TypeMismatchItems };
+                        return FunctionResponse.GetSingleError("GroupCode","There are item groups with codes " + TypeMismatchItems);
                 }
-                return new FunctionResponse { status = "ok", result = ExsitingMCodeList.Select(x => x.MCODE).ToList<string>() };
+                return new FunctionResponse{ status = "ok", result = ExsitingMCodeList.Select(x => x.MCODE).ToList<string>() };
 
             }
             catch (Exception Ex)
             {
-                return new FunctionResponse { status = "error", result = Ex.Message };
+                return new FunctionResponse { status = "error", result = Ex.GetBaseException().Message };
             }
         }
         public void GetMCode(SqlTransaction tran, Product product)
@@ -281,26 +258,16 @@ namespace IMS_POS_API.Services
             }
             catch (Exception ex)
             {
-                throw ex;
+                ex.GetBaseException() ;
             }
         }
         public void GetMenuCode(SqlTransaction tran, Product product)
         {
-            try
-            {
-                //if (GlobalSetting.GblManualCode == 0)
-                //{
                 if (product.TYPE == "A")
                 {
-                    product.ECODE = Convert.ToDecimal(tran.Connection.ExecuteScalar("SELECT ISNULL(MAX(ECODE),0) + 1 AS EC FROM MENUITEM WHERE FCODE = '" + product.FCODE + "' AND TYPE = 'A'", transaction: tran));
+                    product.ECODE = Convert.ToDecimal(tran.Connection.ExecuteScalar("SELECT ISNULL(MAX(ECODE),0) + 1 AS EC FROM MENUITEM WHERE FCODE =@FCODE AND TYPE = 'A'",new {FCODE=product.FCODE }, transaction: tran));
                     product.MENUCODE = product.FCODE.ToString() + "." + product.ECODE.ToString();
                 }
-                //}
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
         }
         public bool SaveNewProduct(SqlTransaction Tran, Product product)
         {
@@ -360,7 +327,6 @@ namespace IMS_POS_API.Services
                 product.MENUCODE = ColumnValue["MENUCODE"] == null ? "" : ColumnValue["MENUCODE"].ToString();
                 return true;
             }
-            //return Tran.Connection.Execute(cd) > 0;
             return false;
         }
 
@@ -369,7 +335,7 @@ namespace IMS_POS_API.Services
         {
             if (BCodeList != null && BCodeList.Count > 0)
             {
-                tran.Connection.Execute("DELETE FROM BARCODE WHERE MCODE = '" + product.MCODE + "'", transaction: tran);
+                tran.Connection.Execute($"DELETE FROM BARCODE WHERE MCODE = @MCODE",new {MCODE=product.MCODE }, transaction: tran);
                 foreach (BarCode b in BCodeList)
                 {
                     b.MCODE = product.MCODE;
@@ -419,24 +385,11 @@ namespace IMS_POS_API.Services
             SaveQuery += ") " + Values + ")";
             return tran.Connection.Execute(SaveQuery, transaction: tran) == 1;
         }
-        public Task<FunctionResponse> GetProductBarcodeByMCode(string MCODE)
-        {
-            try
-            {
-                var BCodeList = db.Query<BarCode>("SELECT BCODE, MCODE, UNIT, ISSUENO, EDATE, BCODEID, SUPCODE, BATCHNO, EXPIRY, INVNO, DIV, FYEAR, SRATE, REMARKS FROM BarCode WHERE MCODE='" + MCODE + "'");
-                return Task.FromResult<FunctionResponse>(new FunctionResponse { status = "ok", result = BCodeList });
-            }
-            catch (Exception ex)
-            {
-                return Task.FromResult<FunctionResponse>(new FunctionResponse { status = "error", result = ex.Message });
-            }
-        }
-
         public IEnumerable<BarcodeDetail> GetBarcodeDetails(string MCODE, string BCODE)
         {
             IEnumerable<BarcodeDetail> BCodeDetails;
             BCodeDetails = db.Query<BarcodeDetail>("SELECT C.COLUMN_NAME, DATA_TYPE, ISNULL(CHARACTER_MAXIMUM_LENGTH, 0) [COL_LENGTH] FROM INFORMATION_SCHEMA.COLUMNS C JOIN BARCODE_DETAIL_FIELDS BDF ON C.COLUMN_NAME = BDF.COLUMN_NAME WHERE TABLE_NAME = 'BARCODE_DETAIL' AND ORDINAL_POSITION > 2 AND IsEnabled = 1");
-            using (var reader = db.ExecuteReader("SELECT * FROM BARCODE_DETAIL WHERE MCODE='" + MCODE + "' AND BARCODE = '" + BCODE + "'"))
+            using (var reader = db.ExecuteReader($"SELECT * FROM BARCODE_DETAIL WHERE MCODE=@MCODE AND BARCODE = @BCODE", new { MCODE, BCODE }))
             {
                 while (reader.Read())
                 {
@@ -454,7 +407,7 @@ namespace IMS_POS_API.Services
         {
             if (AltUnit != null && AltUnit.Count() > 0)
             {
-                Tran.Connection.Execute("DELETE FROM MULTIALTUNIT WHERE MCODE = '" + product.MCODE + "'", transaction: Tran);
+                Tran.Connection.Execute("DELETE FROM MULTIALTUNIT WHERE MCODE =@MCODE", new { MCODE = product.MCODE }, transaction: Tran);
                 foreach (MULTIALTUNIT au in AltUnit)
                 {
                     this.AltUnit = au;
@@ -469,7 +422,7 @@ namespace IMS_POS_API.Services
         {
             return tran.Connection.Execute("INSERT INTO MULTIALTUNIT(MCODE, ALTUNIT, CONFACTOR, RATE, ISDEFAULT, BRCODE, PRATE, ISDISCONTINUE, ISDEFAULTPRATE) VALUES (@MCODE, @ALTUNIT, @CONFACTOR, @RATE, @ISDEFAULT, @BRCODE, @PRATE, @ISDISCONTINUE, @ISDEFAULTPRATE)", AltUnit, tran) == 1;
         }
-        public FunctionResponse GetItemParent(IList<string> MCodeList)
+        public async Task<FunctionResponse> GetItemParent(IList<string> MCodeList)
         {
             try
             {
@@ -478,12 +431,12 @@ namespace IMS_POS_API.Services
                 {
                     InStr += ", '" + MCodeList[i] + "'";
                 }
-                    IEnumerable<Product> ParentList = db.Query<Product>("SELECT MCODE, DESCA, MENUCODE, MCAT FROM MENUITEM WHERE MCODE IN (" + InStr + ")");
+                    IEnumerable<Product> ParentList =await db.QueryAsync<Product>("SELECT MCODE, DESCA, MENUCODE, MCAT FROM MENUITEM WHERE MCODE IN (" + InStr + ")");
                     return new FunctionResponse { status = "ok", result = ParentList.ToList() };
             }
             catch (Exception Ex)
             {
-                return new FunctionResponse { status = "error", result = Ex.Message };
+                return new FunctionResponse { status = "error", result = Ex.GetBaseException().Message };
             }
         }
     }

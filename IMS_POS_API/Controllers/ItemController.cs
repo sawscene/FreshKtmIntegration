@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 namespace IMS_POS_API.Controllers
 {
     //[Route("api/[controller]")]
-    [ApiController]
+    //[ApiController]
 
     public class ItemController : ControllerBase
     {
@@ -30,27 +30,25 @@ namespace IMS_POS_API.Controllers
             this.itemSaveDataAccess = _itemSaveDataAccess;
         }
 
-        
+
         [HttpPost]
+       // [Authorize]
         [Route("api/saveItemGroup")]
-        [AllowAnonymous]
+
         public async Task<ActionResult> SaveItemGroup([FromBody] List<ItemGroup> param)
         {
             try
             {
-                //var connectinUser = User.Identity.Name;
-                //var conString = ConnectionModel.ConnectionString;
                 var Key = ConnectionModel.KEY;
-                //DateTime TimeStamp = System.DateTime.Now;
                 IList<ItemGroup> ItemGroupList = param;
-                foreach(ItemGroup grp in ItemGroupList)
+                foreach (ItemGroup grp in ItemGroupList)
                 {
-                    var msg = $@"{grp.TimeStamp.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss")}-{grp.GroupCode}-{grp.Name}-{Key}";
-                    string signature = HelperClass.HMAC_SHA256(Key, msg);
-                    if (HelperClass.CheckHash(Key, msg, grp.Signature) == false)
-                    {
-                        throw new Exception("Invalid data values");
-                    }
+                    //var msg = $@"{grp.TimeStamp.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss")}-{grp.GroupCode}-{grp.Name}-{Key}";
+                    //string signature = HelperClass.HMAC_SHA256(Key, msg);
+                    //if (HelperClass.CheckHash(Key, msg, grp.Signature) == false)
+                    //{
+                    //    throw new Exception("Invalid data values");
+                    //}
                     dynamic result = await itemSaveDataAccess.SaveGroup(param);
                     if (result.status == "ok")
                     {
@@ -65,56 +63,48 @@ namespace IMS_POS_API.Controllers
             }
             catch (Exception Ex)
             {
-
-                throw Ex;
+                return new BadRequestObjectResult(new FunctionResponse { status = "error", result = Ex.GetBaseException().Message });
             }
         }
         [HttpPost]
+        //[Authorize]
         [Route("api/saveItem")]
-        [AllowAnonymous]
+
         public async Task<ActionResult> SaveItem([FromBody] List<Item> param)
         {
             try
             {
                 var Key = ConnectionModel.KEY;
                 IList<Item> ItemList = param;
-                foreach(Item grp in ItemList)
+                foreach (Item grp in ItemList)
                 {
-                    var msg = $@"{grp.TimeStamp.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss")}-{grp.SkuCode}-{grp.BarCode}-{grp.Name}-{grp.UOM}-{grp.MRP}-{Key}";
-                    var signature = HelperClass.HMAC_SHA256(Key, msg);
-                    if (HelperClass.CheckHash(Key, msg, grp.Signature) == false)
-                    {
-                        throw new Exception("Invalid data values");
-                    }
+                    //var msg = $@"{grp.TimeStamp.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss")}-{grp.SkuCode}-{grp.BarCode}-{grp.Name}-{grp.UOM}-{grp.MRP}-{Key}";
+                    //var signature = HelperClass.HMAC_SHA256(Key, msg);
+                    //if (HelperClass.CheckHash(Key, msg, grp.Signature) == false)
+                    //{
+                    //    throw new Exception("Invalid data values");
+                    //}
                     dynamic result = await itemSaveDataAccess.SaveItem(param);
                     if (result.status == "ok")
                     {
                         return Ok(result);
                     }
+                    else
+                    {
+                        return BadRequest(result);
+                    }
                 }
                 return Ok();
-                //dynamic result = await itemSaveDataAccess.SaveItem(param);
-                //if (result.status == "ok")
-                //{
-                //    return Ok(result);
-                //}
-                //else
-                //{
-                //    return BadRequest(result);
-                //}
-
             }
-            catch (Exception)
+            catch (Exception Ex)
             {
-
-                throw;
+                return new BadRequestObjectResult(new FunctionResponse { status = "error", result = Ex.GetBaseException().Message });
             }
         }
-       
-
     }
 }
-    
+
+
 
 
 

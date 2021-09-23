@@ -13,19 +13,26 @@
 
   <ItemGroup>
     <Compile Remove="Controllers\FunctionResponse.cs" />
+    <Compile Remove="Controllers\LoginController.cs" />
+    <Compile Remove="DAL\DBConnectionInfo.cs" />
+    <Compile Remove="Helper\GlobalClass.cs" />
     <Compile Remove="Model\MenuItem.cs" />
     <Compile Remove="Services\ItemSaveDataAccessBase.cs" />
+    <Compile Remove="Services\IUserService.cs" />
     <Compile Remove="Services\ProductSaveAndUpdate.cs" />
+    <Compile Remove="Services\UserService.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.90" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.11.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.12.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.2.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.12.2" />
   </ItemGroup>
 
 

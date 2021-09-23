@@ -10,6 +10,9 @@ C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Dapper.d
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.Build.Framework.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.Build.Tasks.Core.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.Build.Utilities.Core.dll
+C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Logging.dll
+C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.IdentityModel.Tokens.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.NET.StringTools.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.OpenApi.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\Microsoft.Win32.SystemEvents.dll
@@ -22,6 +25,7 @@ C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.C
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.Configuration.ConfigurationManager.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.Data.SqlClient.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.Drawing.Common.dll
+C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.IdentityModel.Tokens.Jwt.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.Resources.Extensions.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.Runtime.CompilerServices.Unsafe.dll
 C:\Users\sycok\source\repos\IMS_POS\IMS_POS_API\bin\Debug\netcoreapp3.1\System.Security.AccessControl.dll

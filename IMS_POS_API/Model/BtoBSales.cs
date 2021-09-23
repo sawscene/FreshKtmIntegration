@@ -27,6 +27,10 @@ namespace IMS_POS_API.Model
         [Required]
         [StringLength(20)]
         public string InvoiceType { get; set; }
+        [Required]
+        public DateTime TimeStamp { get; set; }
+        [Required]
+        public string Signature { get; set; }
         public TInvoiceDetail[] ItemList { get; set; }
     }
     public class BtoBSales : TBtoBSales
@@ -88,7 +92,6 @@ namespace IMS_POS_API.Model
         public string SkuCode { get; set; }
         public string UOM { get; set; }
         [Required]
-        //[m(20)]
         public decimal Quantity { get; set; }
         [Required]
         //[StringLength(20)]

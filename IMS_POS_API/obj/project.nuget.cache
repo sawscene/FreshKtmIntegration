@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "If72523u5dKcC7x3sdZgxUWxEirnnsx2IXzSPcz+AyYWfAgSoIsz7sg8P6+3M9h7/T5OmEPWyi60r+yLuRaiIg==",
+  "dgSpecHash": "/Dz1bN7uk89K5W2IArIopWv089UHDyfR3vx4OCZnA9WwNvXz0N7qy5b2H6rbh7HtUE35/NtFfBEpv65AeSfx2A==",
   "success": true,
   "projectFilePath": "C:\\Users\\sycok\\source\\repos\\IMS_POS\\IMS_POS_API\\IMS_POS_API.csproj",
   "expectedPackageFiles": [
@@ -8,7 +8,11 @@
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.build.framework\\16.11.0\\microsoft.build.framework.16.11.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.build.tasks.core\\16.11.0\\microsoft.build.tasks.core.16.11.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.build.utilities.core\\16.11.0\\microsoft.build.utilities.core.16.11.0.nupkg.sha512",
+    "C:\\Users\\sycok\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.extensions.apidescription.server\\3.0.0\\microsoft.extensions.apidescription.server.3.0.0.nupkg.sha512",
+    "C:\\Users\\sycok\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\6.12.2\\microsoft.identitymodel.jsonwebtokens.6.12.2.nupkg.sha512",
+    "C:\\Users\\sycok\\.nuget\\packages\\microsoft.identitymodel.logging\\6.12.2\\microsoft.identitymodel.logging.6.12.2.nupkg.sha512",
+    "C:\\Users\\sycok\\.nuget\\packages\\microsoft.identitymodel.tokens\\6.12.2\\microsoft.identitymodel.tokens.6.12.2.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.net.stringtools\\1.0.0\\microsoft.net.stringtools.1.0.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\microsoft.netcore.targets\\1.0.1\\microsoft.netcore.targets.1.0.1.nupkg.sha512",
@@ -31,6 +35,7 @@
     "C:\\Users\\sycok\\.nuget\\packages\\system.data.sqlclient\\4.8.2\\system.data.sqlclient.4.8.2.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\system.drawing.common\\5.0.0\\system.drawing.common.5.0.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\system.globalization\\4.0.11\\system.globalization.4.0.11.nupkg.sha512",
+    "C:\\Users\\sycok\\.nuget\\packages\\system.identitymodel.tokens.jwt\\6.12.2\\system.identitymodel.tokens.jwt.6.12.2.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\system.io\\4.1.0\\system.io.4.1.0.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
     "C:\\Users\\sycok\\.nuget\\packages\\system.reflection\\4.1.0\\system.reflection.4.1.0.nupkg.sha512",

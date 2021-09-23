@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using IMS_POS_API.Model;
+using IMS_POS_API.Models;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -26,22 +27,18 @@ namespace IMS_POS_API.Services
                 
                 using (SqlConnection conn = new SqlConnection(db))
                 {
-                    DateTime trndate = conn.ExecuteScalar<DateTime>("select getdate()");
-                    TimeSpan date = trndate - s.TimeStamp;
-                    if (trndate.Subtract(s.TimeStamp).TotalMinutes > 5)
-                    {
+                    //DateTime trndate = conn.ExecuteScalar<DateTime>("select getdate()");
+                    //TimeSpan date = trndate - s.TimeStamp;
+                    //if (trndate.Subtract(s.TimeStamp).TotalMinutes > 5)
+                    //{
 
-                        throw new Exception("time limit is not valid");
-                    }
-                    var SalesInfo = conn.QueryFirstOrDefault<SalesInfo>("SELECT VCHRNO, REFNO, ISNULL(STATUS, 0) STATUS FROM RMD_ORDERMAIN WHERE VCHRNO = @RefInvoiceNo",new { s.RefInvoiceNo });
+                    //    throw new Exception("time limit is not valid");
+                    //}
+                    var SalesInfo = conn.QueryFirstOrDefault<SalesInfo>("SELECT VCHRNO, REFNO, ISNULL(STATUS, 0) STATUS FROM RMD_ORDERMAIN WHERE ORDERNO = @RefInvoiceNo",new { RefInvoiceNo = s.RefInvoiceNo });
                     if (SalesInfo is { })
                     {
-                        if (SalesInfo.STATUS == 1)
-                        {
-                            elist.Add(new ErrorList { FieldName = "OrderNo", ErrorMessage = $"Order no '{s.RefInvoiceNo}' is already saved & Bill is already processed." });
-                            return new { status = "error", errorList = elist };
-                        }
-                        s.VCHRNO = SalesInfo.VCHRNO;
+                        elist.Add(new ErrorList { FieldName = "REFNO", ErrorMessage = $"REFNO: '{s.RefInvoiceNo}' is already saved & Bill is already processed."});
+                        return new { status = "error", errorList = elist };
                     }
                     s.ORDERNO = s.RefInvoiceNo;
                     foreach (InvoiceDetail prod in s.ItemList)
@@ -51,17 +48,15 @@ namespace IMS_POS_API.Services
                             elist.Add(new ErrorList { FieldName = "ItemList[].ItemCode", ErrorMessage = $"Item Code '{prod.SkuCode}' does not exists." });
                         else
                         {
-                                
-                            prod.VAT = await conn.ExecuteScalarAsync<byte>($"SELECT VAT FROM MENUITEM WHERE MENUCODE = @SkuCode", new { prod.SkuCode});
+
+                            prod.VAT = await conn.ExecuteScalarAsync<byte>($"SELECT VAT FROM MENUITEM WHERE MENUCODE = @SkuCode", new { prod.SkuCode });
                             if (string.IsNullOrEmpty(prod.UOM))
-                                prod.UOM = await conn.ExecuteScalarAsync<string>($"SELECT BASEUNIT FROM MENUITEM WHERE MCODE = @SkuCode", new{ prod.SkuCode});
+                                prod.UOM = await conn.ExecuteScalarAsync<string>($"SELECT BASEUNIT FROM MENUITEM WHERE MCODE = @SkuCode", new { prod.SkuCode });
                         }
                     }
                     if (elist.Count > 0)
-                        return new { status = "error", errorlist = elist };
+                        return new { errorlist = elist };
                     var division = (await conn.QueryAsync("SELECT INITIAL, PhiscalID FROM COMPANY;")).FirstOrDefault();
-                    // s.PARENT = conn.ExecuteScalar<string>("SELECT ISNULL(CUSTOMERGROUPACID, 'PA') FROM SETTING;");
-                    //s.PARENT = "PAG2187";
                     s.ACNAME = s.CustomerName;
                     s.ADDRESS = s.Customeraddress;
                     s.VNUM = s.CustomerPan;
@@ -81,16 +76,16 @@ namespace IMS_POS_API.Services
                             if (string.IsNullOrEmpty(s.ACID))
                             {
                                 string acliststr = @"INSERT INTO RMD_ACLIST(ACID, ACNAME, PARENT, TYPE,  IsBasicAc, ADDRESS, VATNO, PType)
-                                                 VALUES(@ACID, @ACNAME, 'PAG2187','A',0,@ADDRESS, @VNUM, 'C'";
+                                                 VALUES(@ACID, @ACNAME,'PAG2187','A',0,@ADDRESS,@VNUM,'C')";
 
-                                s.ACID = "PA" + (await GETNEWSEQUENCES("Item", tran)) + "X";
+                                s.ACID = "PA" + (await GETNEWSEQUENCES("Salesorder", tran)) + "X";
                                 await conn.ExecuteAsync(acliststr, s, transaction: tran);
                                 //await sqlcon.ExecuteAsync("update RMD_SEQUENCES set CurNo=CurNo+1  where VNAME='PARTYAC';", transaction: tran);
                             }
                         }
                         if (string.IsNullOrEmpty(s.VCHRNO))
                         {
-                            s.VCHRNO = "SO" + (await GETNEWSEQUENCES("Item", tran, s.DIVISION, s.PhiscalID))+"-"+s.DIVISION+"-"+s.PhiscalID;//SALESORDER
+                            s.VCHRNO = "SO" + (await GETNEWSEQUENCES("Salesorder", tran, s.DIVISION, s.PhiscalID))+"-"+s.DIVISION+"-"+s.PhiscalID;//SALESORDER
                         }
                         else
                         {
@@ -130,15 +125,14 @@ namespace IMS_POS_API.Services
                         await conn.ExecuteAsync(strOrderProd, s.ItemList, transaction: tran);
                         //await sqlcon.ExecuteAsync($"update RMD_SEQUENCES set CurNo=CurNo+1  where VNAME='SALESORDER'  AND DIVISION = '{o.DIVISION}' ;", transaction: tran);
                         tran.Commit();
-                        return new { status = "ok", result = s.VCHRNO };
+                        return new { status = "ok", result =$"VCHRNO:'{s.VCHRNO}'", message="Success" };
                         //sqlcon.Close();
                     }
                 }
             }
             catch (Exception Ex)
             {
-
-                throw Ex;
+                return new { status = "error", result = Ex.GetBaseException().Message };
             }
         }
         private async Task<string> GETNEWSEQUENCES(string VNAME, SqlTransaction tran, string DIVISION = "", string PhiscalID = "")
@@ -147,10 +141,10 @@ namespace IMS_POS_API.Services
             {
                 string VoucherType;
                 string curno = await tran.Connection.ExecuteScalarAsync<string>($"UPDATE RMD_SEQUENCES SET CurNo=CurNo+1 OUTPUT DELETED.CurNo  WHERE VNAME = '{VNAME}'" +
-                    ((VNAME == "Item") ? "" : $" AND DIVISION = '{DIVISION}'"), transaction: tran);
+                    ((VNAME == "Salesorder") ? "" : $" AND DIVISION = '{DIVISION}'"), transaction: tran);
                 if (string.IsNullOrEmpty(curno))
                 {
-                    if (VNAME == "Item")
+                    if (VNAME == "Salesorder")
                         VoucherType = "PA";
                     else
                         VoucherType = "SO";
@@ -162,9 +156,9 @@ namespace IMS_POS_API.Services
                 }
                 return curno;
             }
-            catch (Exception)
+            catch (Exception Ex)
             {
-                throw;
+                return Ex.GetBaseException().Message;
             }
         }
     }
